@@ -248,7 +248,7 @@
             
             try {
                 // 用 fetch 去跟 Google 連線
-                const response = await fetch(googleScriptUrl);
+                const response = await fetch(googleScriptUrl + "?t=" + new Date().getTime());
                 // 把下載回來的純文字解析成 JavaScript 名單陣列
                 originalList = await response.json();
                 
