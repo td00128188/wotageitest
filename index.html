@@ -272,9 +272,9 @@
 
         // 監聽按鈕點擊事件（底下維持你原本一模一樣的拉霸計時器抽籤邏輯）
         luckyBtn.addEventListener('click', () => {
-            if (winnersList.length >= 10) {
-                resultDisplay.textContent = "🛑 已抽滿 10 人！";
-                showCustomAlert("🛑 抽選完畢", "今天預計抽 10 人的名額已經全部抽完囉！");
+            if (winnersList.length >= 20) {
+                resultDisplay.textContent = "🛑 已抽滿 20 人！";
+                showCustomAlert("🛑 抽選完畢", "今天預計抽 20 人的名額已經全部抽完囉！");
                 return;
             }
             if (activePool.length === 0) {
