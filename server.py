@@ -23,8 +23,7 @@ def get_live_names():
     try:
         # 🎯 3. 對方 Google 試算表的最工整匯出格式網址！
         # 我們直接繞過 Google API 的帳號權限驗證，用純文字（CSV / 逗號分隔格式）直接把名單拉下來！
-        spreadsheet_id = "13H8jZfzTsrmIWWbDaMcr1Qi08VefhoQkJqej_rusBmM"
-        csv_url = f"https://google.com{spreadsheet_id}/export?format=csv&gid=1341228327"
+        csv_url = "https://docs.google.com/spreadsheets/d/13HfjqYz7bmSWPlc0EMIz1iQ3i6yR9qEUoROUq0RqJ7w/export?format=csv"
 
         # 叫 Python 直接發出網路請求去抓資料
         response = requests.get(csv_url, timeout=10)
