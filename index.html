@@ -202,47 +202,12 @@
 
     <!-- JavaScript 核心大腦 -->
     <script>
-        // 🎯 這裡已經幫你把「反引號」和「名單」全部完美拼好，字體絕對會是漂亮的橘黃色！
-        const rawExcelData = `
-請輸入您的暱稱
-ボミ
-格雷伯爵紅22222
-レリ—ズ
-鴨梨
-Zone
-炎頭隊長沙福林
-小冰冰
-カエル
-Kiwie
-硫酸
-說好了打一輩子窩塔藝喔
-盧湘鈴
-好想吃拉麵
-化石
-天狐
-陳致勝
-艾朕空
-ZK
-章魚虛
-響
-星爆
-アヤソウ
-らり
-烏伊馬克
-楓可
-小咖
-`;
+        // 🎯 核心修改一：把剛剛從 Google 部署得到的「網頁應用程式 URL」完整貼在下面引號內！
+        const googleScriptUrl = "https://script.google.com/macros/s/AKfycbyTDRpYEnQlfzYnkN_1jG8yfOA7HUdmk-xrKnuvN-Iu6eLVojAlLkTb9GT57IKwYQqlAA/exec";
 
-        // 原始名單解析與過濾
-        const originalList = rawExcelData
-            .split('\n')
-            .map(name => name.trim())
-            .filter(name => name !== "" && name !== "請輸入您的暱稱");
-
-        // 複製一份作為動態抽籤池
-        let activePool = originalList.slice();
-        
-        // 用來記錄已中獎的人
+        // 全域變數初始化
+        let originalList = [];
+        let activePool = [];
         let winnersList = [];
 
         // 取得網頁上的 HTML 元素
@@ -257,24 +222,18 @@ ZK
         const modalMessage = document.getElementById('modalMessage');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
 
-        // 打開彈窗功能
+        // 彈窗與看板更新函式
         function showCustomAlert(title, message) {
             modalTitle.textContent = title;
             modalMessage.textContent = message;
             alertModal.style.display = 'flex'; 
         }
+        modalCloseBtn.addEventListener('click', () => { alertModal.style.display = 'none'; });
 
-        // 關閉彈窗功能
-        modalCloseBtn.addEventListener('click', () => {
-            alertModal.style.display = 'none';
-        });
-
-        // 刷新數據看板
         function updateDashboard() {
             totalCount.textContent = originalList.length;      
             drawnCount.textContent = winnersList.length;       
             remainingCount.textContent = activePool.length;    
-            
             if (winnersList.length > 0) {
                 historyList.textContent = winnersList.join(' 、 ');
             } else {
@@ -282,20 +241,40 @@ ZK
             }
         }
 
-        // 網頁開啟時先刷新一次初始數據
-        updateDashboard();
-
-        // 監聽按鈕點擊事件
-        luckyBtn.addEventListener('click', () => {
+        // 🎯 核心修改二：網頁一打開，啟動非同步抓取公式！自動去試算表拉人名
+        async function fetchLiveNames() {
+            resultDisplay.textContent = "⏳ 正在即時同步表單名單...";
+            luckyBtn.disabled = true; // 名單還沒下載完前，先鎖住按鈕防止出錯
             
-            // 防護一：如果已經抽滿 20 個人了
-            if (winnersList.length >= 20) {
-                resultDisplay.textContent = "🛑 已抽滿 20 人！";
-                showCustomAlert("🛑 抽選完畢", "今天預計抽 20 人的名額已經全部抽完囉！");
+            try {
+                // 用 fetch 去跟 Google 連線
+                const response = await fetch(googleScriptUrl);
+                // 把下載回來的純文字解析成 JavaScript 名單陣列
+                originalList = await response.json();
+                
+                // 成功載入！同步初始化抽籤池
+                activePool = originalList.slice();
+                updateDashboard();
+                resultDisplay.textContent = "中獎名單";
+                luckyBtn.disabled = false; // 解鎖按鈕
+                console.log("【雲端連線成功】目前載入總人數：", originalList.length);
+            } catch (error) {
+                resultDisplay.textContent = "❌ 名單同步失敗";
+                showCustomAlert("⚠️ 連線失敗", "無法從 Google 表單抓取名單，請檢查網路或 GAS 網址是否正確。");
+                console.error("抓取失敗原因：", error);
+            }
+        }
+
+        // 啟動連線功能
+        fetchLiveNames();
+
+        // 監聽按鈕點擊事件（底下維持你原本一模一樣的拉霸計時器抽籤邏輯）
+        luckyBtn.addEventListener('click', () => {
+            if (winnersList.length >= 10) {
+                resultDisplay.textContent = "🛑 已抽滿 10 人！";
+                showCustomAlert("🛑 抽選完畢", "今天預計抽 10 人的名額已經全部抽完囉！");
                 return;
             }
-
-            // 防護二：如果名單空了
             if (activePool.length === 0) {
                 resultDisplay.textContent = "❌ 名單已全數抽完！";
                 showCustomAlert("❌ 人數不足", "名單人數不足，抽籤池已經空囉！");
@@ -305,7 +284,6 @@ ZK
             luckyBtn.disabled = true; 
             let counter = 0;
             
-            // 啟動拉霸特效
             const shuffleInterval = setInterval(() => {
                 const tempIndex = Math.floor(Math.random() * activePool.length);
                 resultDisplay.textContent = activePool[tempIndex];
@@ -313,32 +291,18 @@ ZK
                 
                 if (counter > 25) {
                     clearInterval(shuffleInterval);
-                    
-                    // 決定最終真正的幸運得主
                     const finalIndex = Math.floor(Math.random() * activePool.length);
                     const winner = activePool[finalIndex];
-                    
-                    // 顯示中獎名字
                     resultDisplay.textContent = winner;
-                    
-                    // 從抽籤池剪掉中獎者
                     activePool.splice(finalIndex, 1);
-                    
-                    // 把得主塞進已中獎陣列
                     winnersList.push(winner);
-                    
-                    // 即時刷新數字與中獎名單看板
                     updateDashboard();
-                    
                     luckyBtn.disabled = false; 
                 }
             }, 50);
         });
 
-        // 防範 F5 誤觸
-        window.addEventListener('beforeunload', (event) => {
-            event.preventDefault();
-        });
+        window.addEventListener('beforeunload', (event) => { event.preventDefault(); });
     </script>
 </body>
 </html>
