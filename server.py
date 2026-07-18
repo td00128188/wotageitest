@@ -21,7 +21,7 @@ app.add_middleware(
 def get_live_names():
     try:
         # 🎯 終極修復：一字不差的 Google 原生 C 欄純文字匯出專用密令網址！
-        csv_url = "https://docs.google.com/spreadsheets/d/13HfjqYz7bmSWPlc0EMIz1iQ3i6yR9qEUoROUq0RqJ7w/edit?resourcekey=&gid=1341228327#gid=1341228327"
+        csv_url = "https://docs.google.com/spreadsheets/d/13HfjqYz7bmSWPlc0EMIz1iQ3i6yR9qEUoROUq0RqJ7w/export?format=csv"
 
         # 叫 Python 發出網路請求去抓資料
         response = requests.get(csv_url, timeout=10)
